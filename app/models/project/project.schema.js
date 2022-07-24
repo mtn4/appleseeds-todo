@@ -1,57 +1,5 @@
 import mongoose from "mongoose";
-
-const subTaskSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    description: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    comments: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
-    urgency: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    status: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-  },
-  {
-    timestamps: true,
-  }
-);
-
-const taskSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    status: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    subTasks: [subTaskSchema],
-  },
-  {
-    timestamps: true,
-  }
-);
+import { Task } from "../task/task.model.js";
 
 const projectSchema = new mongoose.Schema(
   {
@@ -70,11 +18,25 @@ const projectSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    tasks: [taskSchema],
   },
   {
     timestamps: true,
   }
 );
+
+projectSchema.virtual("tasks", {
+  ref: "Task",
+  localField: "_id",
+  foreignField: "project",
+});
+
+projectSchema.pre("remove", async function (next) {
+  const project = this;
+  const tasks = await Task.find({ project: project._id });
+  for (let i = 0; i < tasks.length; i++) {
+    await tasks[i].remove();
+  }
+  next();
+});
 
 export { projectSchema };
