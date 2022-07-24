@@ -10,19 +10,19 @@ export const createProject = async (req, res) => {
   }
 };
 
-export const getProject = async (req, res) => {
+export const getAllProjects = async (req, res) => {
   try {
-    const project = await Project.findById(req.params.id);
-    res.json(project);
+    const projects = await Project.find();
+    res.json(projects);
   } catch (e) {
     res.status(400).send({ message: e.message });
   }
 };
 
-export const getAllProjects = async (req, res) => {
+export const getProject = async (req, res) => {
   try {
-    const projects = await Project.find();
-    res.json(projects);
+    const project = await Project.findById(req.params.id);
+    res.json(project);
   } catch (e) {
     res.status(400).send({ message: e.message });
   }
@@ -57,8 +57,8 @@ export const deleteProject = async (req, res) => {
   }
 };
 
-export const addTask = async (req, res) => {
-  const { name, urgency, comments, status } = req.body;
+export const addMainTask = async (req, res) => {
+  const { name, status } = req.body;
   try {
     const project = await Project.findById(req.params.id);
     if (!project) {
@@ -66,8 +66,6 @@ export const addTask = async (req, res) => {
     }
     const task = {
       name,
-      urgency,
-      comments,
       status,
     };
     project.tasks.push(task);
@@ -78,9 +76,38 @@ export const addTask = async (req, res) => {
   }
 };
 
-export const getTask = async (req, res) => {
+export const addSubTask = async (req, res) => {
+  const { name, description, comments, urgency, status } = req.body;
   try {
     const project = await Project.findById(req.params.pid);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const task = project.tasks.find((task) => task._id.equals(req.params.tid));
+    if (!task) {
+      return res.status(404).send({ message: "Task not found" });
+    }
+    const subTask = {
+      name,
+      description,
+      comments,
+      urgency,
+      status,
+    };
+    task.subTasks.push(subTask);
+    await project.save();
+    res.send(project);
+  } catch (e) {
+    res.status(500).send({ message: e.message });
+  }
+};
+
+export const getMainTask = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.pid);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
     const task = project.tasks.find((task) => task._id.equals(req.params.tid));
     if (!task) {
       return res.status(404).send({ message: "Task not found" });
@@ -91,7 +118,29 @@ export const getTask = async (req, res) => {
   }
 };
 
-export const getTasks = async (req, res) => {
+export const getSubTask = async (req, res) => {
+  try {
+    const project = await Project.findById(req.body.pid);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const task = project.tasks.find((task) => task._id.equals(req.body.tid));
+    if (!task) {
+      return res.status(404).send({ message: "Task not found" });
+    }
+    const subTask = task.subTasks.find((subTask) =>
+      subTask._id.equals(req.body.stid)
+    );
+    if (!subTask) {
+      return res.status(404).send({ message: "Sub Task not found" });
+    }
+    res.json(subTask);
+  } catch (e) {
+    res.status(400).send({ message: e.message });
+  }
+};
+
+export const getMainTasks = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id);
     res.json(project.tasks);
@@ -100,9 +149,25 @@ export const getTasks = async (req, res) => {
   }
 };
 
+export const getSubTasks = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.pid);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const task = project.tasks.find((task) => task._id.equals(req.params.tid));
+    if (!task) {
+      return res.status(404).send({ message: "Task not found" });
+    }
+    res.json(task.subTasks);
+  } catch (e) {
+    res.status(400).send({ message: e.message });
+  }
+};
+
 export const updateTask = async (req, res) => {
   const updates = Object.keys(req.body);
-  const allowedUpdates = ["name", "urgency", "comments", "status"];
+  const allowedUpdates = ["name", "status"];
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );
@@ -127,6 +192,46 @@ export const updateTask = async (req, res) => {
   }
 };
 
+export const updateSubTask = async (req, res) => {
+  const updates = Object.keys(req.body);
+  const allowedUpdates = [
+    "name",
+    "description",
+    "comments",
+    "urgency",
+    "status",
+  ];
+  const isValidOperation = updates.every((update) =>
+    allowedUpdates.includes(update)
+  );
+  if (!isValidOperation) {
+    return res.status(400).send({ message: "Invalid updates!" });
+  }
+  try {
+    const project = await Project.findById(req.query.pid);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const task = project.tasks.find((task) => task._id.equals(req.query.tid));
+    if (!task) {
+      return res.status(404).send({ message: "Task not found" });
+    }
+    const index = task.subTasks.findIndex((subTask) =>
+      subTask._id.equals(req.query.stid)
+    );
+    if (index === -1) {
+      return res.status(404).send({ message: "Sub Task not found" });
+    }
+    updates.forEach(
+      (update) => (task.subTasks[index][update] = req.body[update])
+    );
+    await project.save();
+    res.send(project);
+  } catch (e) {
+    res.status(400).send({ message: e.message });
+  }
+};
+
 export const deleteTask = async (req, res) => {
   try {
     const project = await Project.findById(req.params.pid);
@@ -137,6 +242,30 @@ export const deleteTask = async (req, res) => {
       return res.status(404).send({ message: "Task not found" });
     }
     project.tasks.splice(index, 1);
+    await project.save();
+    res.send();
+  } catch (e) {
+    res.status(500).send({ message: e.message });
+  }
+};
+
+export const deleteSubTask = async (req, res) => {
+  try {
+    const project = await Project.findById(req.body.pid);
+    if (!project) {
+      return res.status(404).send({ message: "Project not found" });
+    }
+    const task = project.tasks.find((task) => task._id.equals(req.body.tid));
+    if (!task) {
+      return res.status(404).send({ message: "Task not found" });
+    }
+    const index = task.subTasks.findIndex((subTask) =>
+      subTask._id.equals(req.body.stid)
+    );
+    if (index === -1) {
+      return res.status(404).send({ message: "Sub Task not found" });
+    }
+    task.subTasks.splice(index, 1);
     await project.save();
     res.send();
   } catch (e) {

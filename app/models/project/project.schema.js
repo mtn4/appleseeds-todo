@@ -1,13 +1,13 @@
 import mongoose from "mongoose";
 
-const taskSchema = new mongoose.Schema(
+const subTaskSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
       trim: true,
     },
-    urgency: {
+    description: {
       type: String,
       required: true,
       trim: true,
@@ -18,11 +18,35 @@ const taskSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+    urgency: {
+      type: String,
+      required: true,
+      trim: true,
+    },
     status: {
       type: String,
       required: true,
       trim: true,
     },
+  },
+  {
+    timestamps: true,
+  }
+);
+
+const taskSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    status: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    subTasks: [subTaskSchema],
   },
   {
     timestamps: true,
