@@ -36,7 +36,9 @@ export const getTasks = async (req, res) => {
     if (!project) {
       return res.status(404).send({ message: "Project not found" });
     }
-    const tasks = await Task.find({ project: req.params.id });
+    const tasks = await Task.find({ project: req.params.id }).populate(
+      "project"
+    );
     res.json(tasks);
   } catch (e) {
     res.status(400).send({ message: e.message });

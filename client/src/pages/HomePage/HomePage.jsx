@@ -105,7 +105,7 @@ export default function HomePage() {
               sx={{
                 p: 4,
                 borderRadius: "15px",
-                bgcolor: "black",
+                bgcolor: "rgba(0, 0, 0, 0.5)",
               }}
             >
               <div
