@@ -194,7 +194,7 @@ export default function ProjectPage({ match }) {
                     color={error ? "error" : "primary"}
                     onClick={handleAddTask}
                   >
-                    Add Project
+                    Add Task
                   </Button>
                 </Grid>
               </Grid>
