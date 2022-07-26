@@ -12,12 +12,10 @@ const subtaskSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    comments: [
-      {
-        type: String,
-        trim: true,
-      },
-    ],
+    comments: {
+      type: String,
+      trim: true,
+    },
     urgency: {
       type: String,
       required: true,

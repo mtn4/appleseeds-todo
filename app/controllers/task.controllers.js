@@ -23,6 +23,7 @@ export const addTask = async (req, res) => {
 export const getTask = async (req, res) => {
   try {
     const task = await Task.findById(req.params.id);
+    await task.populate("project");
     res.json(task);
   } catch (e) {
     res.status(400).send({ message: e.message });

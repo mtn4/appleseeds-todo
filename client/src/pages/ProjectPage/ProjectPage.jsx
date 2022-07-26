@@ -1,5 +1,5 @@
 import React from "react";
 
 export default function ProjectPage() {
-  return <div>ProjectPage</div>;
+  return <div className="home-page">ProjectPage</div>;
 }
