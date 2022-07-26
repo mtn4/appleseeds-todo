@@ -20,8 +20,10 @@ export default function ProjectPage({ match }) {
     (async () => {
       const data = await myApi().get(`/tasks/all/${match.params.id}`);
       setTasks(data.data);
-      setProjectName(data.data[0].project.name);
-      setProjectId(data.data[0].project._id);
+      if (data.data[0]) {
+        setProjectName(data.data[0].project.name);
+        setProjectId(data.data[0].project._id);
+      }
       setLoading(false);
     })();
     // eslint-disable-next-line
@@ -63,7 +65,6 @@ export default function ProjectPage({ match }) {
                     p: 4,
                     borderRadius: "15px",
                     bgcolor: "rgba(0, 0, 0, 0.5)",
-                    minHeight: "80vh",
                   }}
                 >
                   <Typography
@@ -83,7 +84,6 @@ export default function ProjectPage({ match }) {
                     p: 4,
                     borderRadius: "15px",
                     bgcolor: "rgba(0, 0, 0, 0.5)",
-                    minHeight: "80vh",
                   }}
                 >
                   <Typography
@@ -103,7 +103,6 @@ export default function ProjectPage({ match }) {
                     p: 4,
                     borderRadius: "15px",
                     bgcolor: "rgba(0, 0, 0, 0.5)",
-                    minHeight: "80vh",
                   }}
                 >
                   <Typography

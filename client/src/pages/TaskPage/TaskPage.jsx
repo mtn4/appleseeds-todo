@@ -22,7 +22,7 @@ import DialogContentText from "@mui/material/DialogContentText";
 import DialogActions from "@mui/material/DialogActions";
 import { todoContext } from "../../contexts/context";
 
-export default function TaskPage({ match }) {
+export default function TaskPage({ match, history }) {
   const [loading, setLoading] = useState(true);
   const [task, setTask] = useState("");
   const [subtasks, setSubtasks] = useState("");
@@ -37,16 +37,34 @@ export default function TaskPage({ match }) {
   const [error, setError] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [subtaskToDelete, setSubtaskToDelete] = useState("");
+  const [taskToDelete, setTaskToDelete] = useState("");
+  const [taskStatus, setTaskStatus] = useState("");
   const { setProjectName, setProjectId } = useContext(todoContext);
 
-  const handleDelete = () => {
+  const handleChangeTaskStatus = (value) => {
     setLoading(true);
     (async () => {
-      const data = await myApi().delete(`/subtasks/${subtaskToDelete}`);
-      setDeleteOpen(false);
-      setSubtaskToDelete("");
-      setUpdated(data);
+      await myApi().patch(`/tasks/${match.params.id}`, { status: value });
+      history.push(`/project/${task.project._id}`);
     })();
+  };
+
+  const handleDelete = () => {
+    if (subtaskToDelete) {
+      setLoading(true);
+      (async () => {
+        const data = await myApi().delete(`/subtasks/${subtaskToDelete}`);
+        setDeleteOpen(false);
+        setSubtaskToDelete("");
+        setUpdated(data);
+      })();
+    } else if (taskToDelete) {
+      setLoading(true);
+      (async () => {
+        await myApi().delete(`/tasks/${task._id}`);
+        history.push(`/project/${task.project._id}`);
+      })();
+    }
   };
 
   const handleDeleteOpen = (id) => {
@@ -54,8 +72,14 @@ export default function TaskPage({ match }) {
     setDeleteOpen(true);
   };
 
+  const handleDeleteOpenTask = () => {
+    setTaskToDelete(task._id);
+    setDeleteOpen(true);
+  };
+
   const handleDeleteClose = () => {
     setSubtaskToDelete("");
+    setTaskToDelete("");
     setDeleteOpen(false);
   };
 
@@ -121,6 +145,7 @@ export default function TaskPage({ match }) {
     (async () => {
       const taskData = await myApi().get(`/tasks/${match.params.id}`);
       setTask(taskData.data);
+      setTaskStatus(taskData.data.status);
       setProjectName(taskData.data.project.name);
       setProjectId(taskData.data.project._id);
       const subtasksData = await myApi().get(
@@ -181,11 +206,27 @@ export default function TaskPage({ match }) {
             <Typography gutterBottom variant="h4" align="center">
               {task.name}
             </Typography>
+            <div style={{ margin: "auto", width: "fit-content" }}>
+              <TextField
+                style={{ margin: 20, minWidth: 120 }}
+                label="Status"
+                select
+                variant="outlined"
+                id="status"
+                margin="dense"
+                value={taskStatus}
+                onChange={(e) => handleChangeTaskStatus(e.target.value)}
+              >
+                <MenuItem value="todo">To Do</MenuItem>
+                <MenuItem value="process">Process</MenuItem>
+                <MenuItem value="done">Done</MenuItem>
+              </TextField>
+            </div>
             <Box
               sx={{
-                mt: 5,
+                mt: 1,
                 display: "flex",
-                flexDirection: "row",
+                justifyContent: "center",
                 gap: 3,
                 bgcolor: "background.paper",
                 borderRadius: 1,
@@ -198,11 +239,18 @@ export default function TaskPage({ match }) {
               >
                 Add Task
               </Button>
-              <Link to={`/project/${task.project}`}>
+              <Link to={`/project/${task.project._id}`}>
                 <Button variant="contained" size="large">
                   Move To Board
                 </Button>
               </Link>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleDeleteOpenTask}
+              >
+                Delete Task
+              </Button>
             </Box>
             <TableContainer component={Paper} sx={{ mt: 4 }}>
               <Table sx={{ minWidth: 650 }} aria-label="simple table">
