@@ -13,8 +13,11 @@ import Button from "@mui/material/Button";
 import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import TextField from "@mui/material/TextField";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContentText from "@mui/material/DialogContentText";
+import DialogActions from "@mui/material/DialogActions";
 
-export default function ProjectPage({ match }) {
+export default function ProjectPage({ match, history }) {
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState("");
   const [name, setName] = useState("");
@@ -22,7 +25,24 @@ export default function ProjectPage({ match }) {
   const [updated, setUpdated] = useState("");
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const { setProjectName, setProjectId } = useContext(todoContext);
+
+  const handleDelete = () => {
+    setLoading(true);
+    (async () => {
+      await myApi().delete(`/projects/${match.params.id}`);
+      history.push(`/`);
+    })();
+  };
+
+  const handleDeleteClose = () => {
+    setDeleteOpen(false);
+  };
+
+  const handleDeleteProjectOpen = () => {
+    setDeleteOpen(true);
+  };
 
   const handleAddTask = () => {
     if (name === "" || status === "") {
@@ -95,6 +115,13 @@ export default function ProjectPage({ match }) {
             <div style={{ margin: "20px auto", width: "fit-content" }}>
               <Button variant="contained" size="large" onClick={handleOpen}>
                 Add Task
+              </Button>{" "}
+              <Button
+                variant="contained"
+                size="large"
+                onClick={handleDeleteProjectOpen}
+              >
+                Delete Project
               </Button>
             </div>
             <Grid container spacing={2}>
@@ -199,6 +226,27 @@ export default function ProjectPage({ match }) {
                 </Grid>
               </Grid>
             </DialogContent>
+          </Dialog>
+          <Dialog
+            open={deleteOpen}
+            onClose={handleDeleteClose}
+            aria-labelledby="alert-dialog-title"
+            aria-describedby="alert-dialog-description"
+          >
+            <DialogTitle id="alert-dialog-title">
+              {"Delete this project?"}
+            </DialogTitle>
+            <DialogContent>
+              <DialogContentText id="alert-dialog-description">
+                Are you sure that you want to delete this project?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={handleDeleteClose}>Cancel</Button>
+              <Button onClick={handleDelete} autoFocus>
+                Delete
+              </Button>
+            </DialogActions>
           </Dialog>
         </div>
       )}
