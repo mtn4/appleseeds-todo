@@ -6,14 +6,48 @@ import Container from "@mui/material/Container";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
-import { Typography } from "@mui/material";
+import { Typography, MenuItem } from "@mui/material";
 import { Link } from "react-router-dom";
 import { todoContext } from "../../contexts/context";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogContent from "@mui/material/DialogContent";
+import TextField from "@mui/material/TextField";
 
 export default function ProjectPage({ match }) {
   const [loading, setLoading] = useState(true);
   const [tasks, setTasks] = useState("");
+  const [name, setName] = useState("");
+  const [status, setStatus] = useState("");
+  const [updated, setUpdated] = useState("");
+  const [error, setError] = useState("");
+  const [open, setOpen] = useState(false);
   const { setProjectName, setProjectId } = useContext(todoContext);
+
+  const handleAddTask = () => {
+    if (name === "" || status === "") {
+      setError(true);
+      return;
+    }
+    setLoading(true);
+    (async () => {
+      const data = await myApi().post(`/tasks/${match.params.id}`, {
+        name,
+        status,
+      });
+      setUpdated(data);
+    })();
+    handleClose();
+  };
+
+  const handleOpen = () => {
+    setOpen(true);
+  };
+  const handleClose = () => {
+    setName("");
+    setStatus("");
+    setOpen(false);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -22,12 +56,12 @@ export default function ProjectPage({ match }) {
       setTasks(data.data);
       if (data.data[0]) {
         setProjectName(data.data[0].project.name);
-        setProjectId(data.data[0].project._id);
+        setProjectId(match.params.id);
       }
       setLoading(false);
     })();
     // eslint-disable-next-line
-  }, [match.params.id]);
+  }, [match.params.id, updated]);
 
   const renderTasks = (status) => {
     return tasks
@@ -58,6 +92,11 @@ export default function ProjectPage({ match }) {
         <div className="home-page">
           <CssBaseline />
           <Container maxWidth="xl">
+            <div style={{ margin: "20px auto", width: "fit-content" }}>
+              <Button variant="contained" size="large" onClick={handleOpen}>
+                Add Task
+              </Button>
+            </div>
             <Grid container spacing={2}>
               <Grid item xs={4}>
                 <Box
@@ -118,6 +157,49 @@ export default function ProjectPage({ match }) {
               </Grid>
             </Grid>
           </Container>
+          <Dialog fullWidth maxWidth="md" open={open} onClose={handleClose}>
+            <DialogContent>
+              <Grid container align="center" spacing={2}>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    margin="dense"
+                    variant="outlined"
+                    label="Name"
+                    id="name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    style={{ margin: 20, minWidth: 120 }}
+                    label="Status"
+                    select
+                    variant="outlined"
+                    id="status"
+                    margin="dense"
+                    value={status}
+                    onChange={(e) => setStatus(e.target.value)}
+                  >
+                    <MenuItem value="todo">To Do</MenuItem>
+                    <MenuItem value="process">Process</MenuItem>
+                    <MenuItem value="done">Done</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid item xs={12}>
+                  <Button
+                    variant="contained"
+                    size="large"
+                    color={error ? "error" : "primary"}
+                    onClick={handleAddTask}
+                  >
+                    Add Project
+                  </Button>
+                </Grid>
+              </Grid>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
     </>

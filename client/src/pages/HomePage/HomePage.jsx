@@ -134,8 +134,6 @@ export default function HomePage() {
                   <TextField
                     fullWidth
                     margin="dense"
-                    multiline
-                    rows="5"
                     variant="outlined"
                     label="Name"
                     id="name"
